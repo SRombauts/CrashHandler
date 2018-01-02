@@ -6,6 +6,10 @@ project (CrashHandler C)
 
 set (source_files
     src/Main.c
+    src/SignalHandler.c
+    src/SignalHandler.h
+    src/Format.c
+    src/Format.h
     README.md
     LICENSE.txt
     .gitignore

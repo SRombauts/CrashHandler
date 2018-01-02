@@ -1,5 +1,5 @@
 /**
- * @file    Main.c
+ * @file    SignalHandler.h
  * @ingroup CrashHandler
  * @brief   A basic Linux crash signal handler in C.
  *
@@ -8,16 +8,7 @@
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
 */
-#include "SignalHandler.h"
+#pragma once
 
-#include <stdio.h>      // printf()
-
-int main() {
-    printf("installSignalHandler\n");
-    installSignalHandler();
-    printf("while(1)...\n");
-    while(1)
-    {}
-    printf("bye\n");
-    return 0;
-}
+/// Install the Linux Signal Handler
+void installSignalHandler();
