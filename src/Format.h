@@ -13,4 +13,4 @@
 #include <stddef.h>
 
 /// signal-safe integer to array formatter
-void formatInteger(const int aValue, char* aBuffer, size_t aBufferSize);
+void formatInteger(const long long aValue, char* aBuffer, size_t aBufferSize);

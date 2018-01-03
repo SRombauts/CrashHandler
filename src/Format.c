@@ -21,11 +21,11 @@ void reverseString(char* aBuffer, size_t aSize) {
 }
 
 /// signal-safe integer to array formatter
-void formatInteger(const int aValue, char* aBuffer, size_t aBufferSize) {
+void formatInteger(const long long aValue, char* aBuffer, size_t aBufferSize) {
     static const char digits[] = "0123456789";
     size_t Size = 0;
     size_t MaxSize;
-    unsigned int Value;
+    unsigned long long Value;
 
     if (aValue < 0) {
         Value = -aValue;
@@ -42,8 +42,7 @@ void formatInteger(const int aValue, char* aBuffer, size_t aBufferSize) {
     } while ((Value > 0) && (Size < MaxSize));
 
     // Add sign and null terminate string
-    if (aValue < 0)
-    {
+    if (aValue < 0) {
         aBuffer[Size++] = '-';
     }
     aBuffer[Size] = '\0';

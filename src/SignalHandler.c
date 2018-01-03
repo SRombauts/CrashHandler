@@ -17,6 +17,7 @@
 #ifdef __linux__
 #include <unistd.h>     // write() close(
 #include <signal.h>     // sigaction()
+#include <time.h>       // clock_gettime()
 
 /// signal-safe print string to file
 void writeStr(const int aFd, const char* apStr) {
@@ -24,18 +25,26 @@ void writeStr(const int aFd, const char* apStr) {
     write(aFd, (const void*)apStr, Size);
 }
 
-/// signal-safe print integer to file
-void writeInt(const int aFd, const int aValue) {
-    char Buffer[12];
+/// signal-safe print 64-bit integer to file
+void writeInt(const int aFd, const long long aValue) {
+    char Buffer[21];
     formatInteger(aValue, Buffer, sizeof(Buffer));
     writeStr(aFd, Buffer);
 }
 
-// signal-safe write the signal number to fil
+// signal-safe write the signal number to file
 void writeCrashReport(const int aSigNum) {
-    const int Fd = open("crash_report.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    const int Fd = open("crash_report.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH); // signal-safe
     if (-1 != Fd) {
-        writeStr(Fd, "\ncrash_report:\n");
+        struct timespec TsNow;
+        const int Res = clock_gettime (CLOCK_REALTIME, &TsNow); // signal-safe
+        writeStr(Fd, "crash_report:\n");
+        if (0 == Res) {
+            writeInt(Fd, TsNow.tv_sec);
+            writeStr(Fd, ".");
+            writeInt(Fd, TsNow.tv_nsec);
+            writeStr(Fd, " ");
+        }
         writeStr(Fd, "signal ");
         writeInt(Fd, aSigNum);
         writeStr(Fd, "\n\n");
@@ -47,12 +56,11 @@ void writeCrashReport(const int aSigNum) {
 void signalHandler(const int aSigNum) {
     // Avoid signal handler recursion
     static sig_atomic_t _bFirstCall = 1;
-    if (_bFirstCall)
-    {
+    if (_bFirstCall) {
         _bFirstCall = 0;
 
         writeCrashReport(aSigNum);
-     }
+    }
 
     // Resume default behavior for the signal to exit without calling back signalHandler()
     // Raise it to get a core, with gdb pointing directly at the right thread, and also return the right exit code.
