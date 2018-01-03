@@ -45,7 +45,15 @@ void writeCrashReport(const int aSigNum) {
 
 /// signal handler
 void signalHandler(const int aSigNum) {
-    writeCrashReport(aSigNum);
+    // Avoid signal handler recursion
+    static sig_atomic_t _bFirstCall = 1;
+    if (_bFirstCall)
+    {
+        _bFirstCall = 0;
+
+        writeCrashReport(aSigNum);
+     }
+  
     _Exit(0); // signal-safe exit (without error as this is the normal behavior of this program)
 }
 #endif // __linux__
