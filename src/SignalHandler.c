@@ -33,7 +33,7 @@ void writeInt(const int aFd, const int aValue) {
 
 // signal-safe write the signal number to fil
 void writeCrashReport(const int aSigNum) {
-    const int Fd = open("crash_report.txt", O_WRONLY | O_CREAT | O_TRUNC);
+    const int Fd = open("crash_report.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     if (-1 != Fd) {
         writeStr(Fd, "\ncrash_report:\n");
         writeStr(Fd, "signal ");
