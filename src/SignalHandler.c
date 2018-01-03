@@ -21,14 +21,15 @@
 
 /// signal-safe print string to file
 void writeStr(const int aFd, const char* apStr) {
-    const size_t Size = strlen(apStr);
-    write(aFd, (const void*)apStr, Size);
+    const size_t Size = strlen(apStr); // signal-safe
+    const size_t Ret = write(aFd, (const void*)apStr, Size); // signal-safe
+    (void)Ret;
 }
 
 /// signal-safe print 64-bit integer to file
 void writeInt(const int aFd, const long long aValue) {
     char Buffer[21];
-    formatInteger(aValue, Buffer, sizeof(Buffer));
+    formatInteger(aValue, Buffer, sizeof(Buffer)); // signal-safe
     writeStr(aFd, Buffer);
 }
 
@@ -48,7 +49,7 @@ void writeCrashReport(const int aSigNum) {
         writeStr(Fd, "signal ");
         writeInt(Fd, aSigNum);
         writeStr(Fd, "\n\n");
-        close(Fd);
+        close(Fd); // signal-safe
     }
 }
 
