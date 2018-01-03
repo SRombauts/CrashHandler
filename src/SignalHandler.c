@@ -15,7 +15,7 @@
 #include <string.h>     // strlen()
 
 #ifdef __linux__
-#include <unistd.h>     // write() close() _Exit()
+#include <unistd.h>     // write() close(
 #include <signal.h>     // sigaction()
 
 /// signal-safe print string to file
@@ -53,8 +53,11 @@ void signalHandler(const int aSigNum) {
 
         writeCrashReport(aSigNum);
      }
-  
-    _Exit(0); // signal-safe exit (without error as this is the normal behavior of this program)
+
+    // Resume default behavior for the signal to exit without calling back signalHandler()
+    // Raise it to get a core, with gdb pointing directly at the right thread, and also return the right exit code.
+    signal(aSigNum, SIG_DFL);
+    raise(aSigNum);
 }
 #endif // __linux__
 
@@ -65,7 +68,7 @@ void installSignalHandler() {
     /* Set up the structure to specify the new action. */
     new_action.sa_handler = signalHandler;
     sigemptyset (&new_action.sa_mask);
-    new_action.sa_flags = 0;
+    new_action.sa_flags = SA_ONSTACK; // Use dedicated alternate signal stack
 
     sigaction (SIGHUP, &new_action, NULL);  // 1
     sigaction (SIGINT, &new_action, NULL);  // 2
