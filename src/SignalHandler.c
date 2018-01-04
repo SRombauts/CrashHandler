@@ -19,6 +19,24 @@
 #include <signal.h>     // sigaction()
 #include <time.h>       // clock_gettime()
 
+static const char* _pSigName[32] = {
+NULL,
+"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT", "SIGBUS", "SIGFPE", "SIGKILL", "SIGUSR1",
+"SIGSEGV", "SIGUSR2", "SIGPIPE", "SIGALRM", "SIGTERM", "SIGSTKFLT", "SIGCHLD", "SIGCONT", "SIGSTOP", "SIGTSTP",
+"SIGTTIN", "SIGTTOU", "SIGURG", "SIGXCPU", "SIGXFSZ", "SIGVTALRM", "SIGPROF", "SIGWINCH", "SIGPOLL", "SIGPWR",
+"SIGSYS"};
+
+const char* signalName(const int aSigNum){
+    if ((0 < aSigNum) && (aSigNum < (int)sizeof(_pSigName)))
+    {
+        return _pSigName[aSigNum];
+    }
+    else
+    {
+        return "INVALID";
+    }
+}
+
 /// signal-safe print string to file
 void writeStr(const int aFd, const char* apStr) {
     const size_t Size = strlen(apStr); // signal-safe
@@ -39,16 +57,18 @@ void writeCrashReport(const int aSigNum) {
     if (-1 != Fd) {
         struct timespec TsNow;
         const int Res = clock_gettime (CLOCK_REALTIME, &TsNow); // signal-safe
-        writeStr(Fd, "crash_report:\n");
         if (0 == Res) {
+            writeStr(Fd, "Timestamp ");
             writeInt(Fd, TsNow.tv_sec);
             writeStr(Fd, ".");
-            writeInt(Fd, TsNow.tv_nsec);
+            writeInt(Fd, TsNow.tv_nsec/1000); // us to be more readable
             writeStr(Fd, " ");
         }
-        writeStr(Fd, "signal ");
+        writeStr(Fd, "Signal ");
         writeInt(Fd, aSigNum);
-        writeStr(Fd, "\n\n");
+        writeStr(Fd, " '");
+        writeStr(Fd, signalName(aSigNum));
+        writeStr(Fd, "'\n\n");
         close(Fd); // signal-safe
     }
 }
@@ -79,13 +99,13 @@ void installSignalHandler() {
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = SA_ONSTACK; // Use dedicated alternate signal stack
 
-    sigaction (SIGHUP, &new_action, NULL);  // 1
-    sigaction (SIGINT, &new_action, NULL);  // 2
+    sigaction (SIGHUP,  &new_action, NULL); // 1
+    sigaction (SIGINT,  &new_action, NULL); // 2
     sigaction (SIGQUIT, &new_action, NULL); // 3
-    sigaction (SIGILL, &new_action, NULL);  // 4
+    sigaction (SIGILL,  &new_action, NULL); // 4
     sigaction (SIGTRAP, &new_action, NULL); // 5
     sigaction (SIGABRT, &new_action, NULL); // 6
-    sigaction (SIGFPE, &new_action, NULL);  // 8
+    sigaction (SIGFPE,  &new_action, NULL); // 8
     sigaction (SIGSEGV, &new_action, NULL); // 11
     sigaction (SIGTERM, &new_action, NULL); // 15
 
